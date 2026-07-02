@@ -11,6 +11,8 @@ const sensitivitySlider = document.getElementById('sensitivitySlider');
 const sensitivityValue = document.getElementById('sensitivityValue');
 const settingsBtn = document.getElementById('settingsBtn');
 const closeSettingsBtn = document.getElementById('closeSettings');
+const musicToggle = document.getElementById('musicToggle');
+const sfxToggle = document.getElementById('sfxToggle');
 
 // Set canvas size
 function resizeCanvas() {
@@ -59,6 +61,177 @@ let isLegitimateWin = false;
 
 // Settings
 let flapSensitivity = parseFloat(localStorage.getItem('flapSensitivity')) || 1.0; // 0.7 (Easy) to 1.3 (Hard)
+let musicEnabled = localStorage.getItem('musicEnabled') !== 'false'; // Default ON
+let sfxEnabled = localStorage.getItem('sfxEnabled') !== 'false'; // Default ON
+
+// Audio Context (Web Audio API for procedural sounds)
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContext();
+
+// Background Music (looping ambient track)
+let bgMusic = null;
+let bgMusicGain = null;
+
+// Create simple background music using oscillators
+function createBackgroundMusic() {
+    if (bgMusic) return; // Already created
+    
+    // Create gain node for volume control
+    bgMusicGain = audioCtx.createGain();
+    bgMusicGain.gain.value = 0.15; // Low volume for background
+    bgMusicGain.connect(audioCtx.destination);
+    
+    // Create a simple melody loop
+    bgMusic = {
+        oscillators: [],
+        gainNodes: [],
+        isPlaying: false
+    };
+}
+
+function playBackgroundMusic() {
+    if (!musicEnabled || !bgMusic) return;
+    if (bgMusic.isPlaying) return;
+    
+    audioCtx.resume(); // Resume in case it's suspended
+    
+    // Simple melody notes (frequencies in Hz)
+    const melody = [
+        { freq: 523.25, duration: 0.3 }, // C5
+        { freq: 587.33, duration: 0.3 }, // D5
+        { freq: 659.25, duration: 0.3 }, // E5
+        { freq: 587.33, duration: 0.3 }, // D5
+        { freq: 523.25, duration: 0.6 }, // C5
+        { freq: 440.00, duration: 0.3 }, // A4
+        { freq: 493.88, duration: 0.3 }, // B4
+        { freq: 523.25, duration: 0.6 }  // C5
+    ];
+    
+    let time = audioCtx.currentTime;
+    
+    function playMelodyLoop() {
+        if (!musicEnabled || gameState === GameState.IDLE) {
+            bgMusic.isPlaying = false;
+            return;
+        }
+        
+        melody.forEach((note, index) => {
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.value = note.freq;
+            
+            gainNode.gain.setValueAtTime(0, time);
+            gainNode.gain.linearRampToValueAtTime(0.1, time + 0.05);
+            gainNode.gain.linearRampToValueAtTime(0, time + note.duration);
+            
+            osc.connect(gainNode);
+            gainNode.connect(bgMusicGain);
+            
+            osc.start(time);
+            osc.stop(time + note.duration);
+            
+            time += note.duration;
+        });
+        
+        // Loop after melody completes
+        setTimeout(playMelodyLoop, melody.reduce((sum, note) => sum + note.duration, 0) * 1000);
+    }
+    
+    bgMusic.isPlaying = true;
+    playMelodyLoop();
+}
+
+function stopBackgroundMusic() {
+    if (bgMusic) {
+        bgMusic.isPlaying = false;
+    }
+}
+
+// Sound Effects
+function playFlapSound() {
+    if (!sfxEnabled) return;
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = 'square';
+    osc.frequency.value = 800;
+    
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.1);
+}
+
+function playScoreSound() {
+    if (!sfxEnabled) return;
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = 'sine';
+    osc.frequency.value = 1000;
+    
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.2);
+}
+
+function playDieSound() {
+    if (!sfxEnabled) return;
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.5);
+    
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.5);
+}
+
+function playWinSound() {
+    if (!sfxEnabled) return;
+    
+    // Victory fanfare
+    const notes = [523.25, 659.25, 783.99, 1046.50]; // C-E-G-C (major chord)
+    
+    notes.forEach((freq, index) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        
+        const startTime = audioCtx.currentTime + index * 0.1;
+        gain.gain.setValueAtTime(0.15, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc.start(startTime);
+        osc.stop(startTime + 0.5);
+    });
+}
 
 // Secret cheat code
 const keysPressed = new Set();
@@ -86,6 +259,7 @@ const bird = {
     flap() {
         this.velocity = config.baseFlapVelocity * flapSensitivity;
         this.scale = 0.85;
+        playFlapSound();
     },
     
     update() {
@@ -248,6 +422,7 @@ function updatePipes() {
         if (pipes[i].isPassed(bird)) {
             pipes[i].scored = true;
             score++;
+            playScoreSound();
             
             // Increase speed every 10 points
             if (score % 10 === 0 && config.pipeSpeed < config.maxPipeSpeed) {
@@ -323,6 +498,10 @@ function start() {
     startScreen.classList.add('hidden');
     gameOverScreen.classList.add('hidden');
     winScreen.classList.add('hidden');
+    
+    // Start background music
+    createBackgroundMusic();
+    playBackgroundMusic();
 }
 
 function die() {
@@ -330,6 +509,9 @@ function die() {
     
     gameState = GameState.DEAD;
     flashOpacity = 0.4;
+    
+    playDieSound();
+    stopBackgroundMusic();
     
     if (score > bestScore) {
         bestScore = score;
@@ -349,6 +531,9 @@ function instantWin() {
     isLegitimateWin = false;
     gameState = GameState.DEAD; // Stop game immediately
     flashOpacity = 0.8;
+    
+    stopBackgroundMusic();
+    playWinSound();
     
     // Victory effect - golden flash with particles
     for (let i = 0; i < 50; i++) {
@@ -380,6 +565,9 @@ function legitimateWin() {
     isLegitimateWin = true;
     gameState = GameState.DEAD; // Stop game immediately
     flashOpacity = 0.8;
+    
+    stopBackgroundMusic();
+    playWinSound();
     
     // Epic victory effect - rainbow particles
     for (let i = 0; i < 100; i++) {
@@ -549,6 +737,12 @@ bestScoreEl.textContent = bestScore;
 sensitivitySlider.value = flapSensitivity;
 updateSensitivityDisplay();
 
+// Update toggle button states
+musicToggle.classList.toggle('active', musicEnabled);
+musicToggle.querySelector('.toggle-status').textContent = musicEnabled ? 'ON' : 'OFF';
+sfxToggle.classList.toggle('active', sfxEnabled);
+sfxToggle.querySelector('.toggle-status').textContent = sfxEnabled ? 'ON' : 'OFF';
+
 settingsBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     settingsScreen.classList.remove('hidden');
@@ -568,6 +762,29 @@ sensitivitySlider.addEventListener('input', (e) => {
 
 sensitivitySlider.addEventListener('change', (e) => {
     e.stopPropagation();
+});
+
+musicToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    musicEnabled = !musicEnabled;
+    localStorage.setItem('musicEnabled', musicEnabled);
+    musicToggle.classList.toggle('active', musicEnabled);
+    musicToggle.querySelector('.toggle-status').textContent = musicEnabled ? 'ON' : 'OFF';
+    
+    if (!musicEnabled) {
+        stopBackgroundMusic();
+    } else if (gameState === GameState.PLAYING) {
+        createBackgroundMusic();
+        playBackgroundMusic();
+    }
+});
+
+sfxToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    sfxEnabled = !sfxEnabled;
+    localStorage.setItem('sfxEnabled', sfxEnabled);
+    sfxToggle.classList.toggle('active', sfxEnabled);
+    sfxToggle.querySelector('.toggle-status').textContent = sfxEnabled ? 'ON' : 'OFF';
 });
 
 // Prevent settings screen from triggering game actions
