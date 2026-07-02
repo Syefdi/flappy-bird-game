@@ -3,9 +3,14 @@ const ctx = canvas.getContext('2d');
 const startScreen = document.getElementById('startScreen');
 const gameOverScreen = document.getElementById('gameOverScreen');
 const winScreen = document.getElementById('winScreen');
+const settingsScreen = document.getElementById('settingsScreen');
 const finalScoreEl = document.getElementById('finalScore');
 const bestScoreEl = document.getElementById('bestScore');
 const winScoreEl = document.getElementById('winScore');
+const sensitivitySlider = document.getElementById('sensitivitySlider');
+const sensitivityValue = document.getElementById('sensitivityValue');
+const settingsBtn = document.getElementById('settingsBtn');
+const closeSettingsBtn = document.getElementById('closeSettings');
 
 // Set canvas size
 function resizeCanvas() {
@@ -29,12 +34,12 @@ const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/
 // Game configuration
 const config = {
     gravity: isMobile ? 0.35 : 0.4,
-    flapVelocity: isMobile ? -7 : -7.5,
+    baseFlapVelocity: isMobile ? -6.5 : -7, // Reduced for easier control
     maxFallSpeed: isMobile ? 9 : 10,
-    basePipeSpeed: isMobile ? 2.5 : 3, // Base speed, will increase
-    pipeSpeed: isMobile ? 2.5 : 3, // Current speed
-    speedIncrement: 0.2, // Speed increase per 10 points
-    maxPipeSpeed: isMobile ? 6 : 8, // Maximum speed cap
+    basePipeSpeed: isMobile ? 2.5 : 3,
+    pipeSpeed: isMobile ? 2.5 : 3,
+    speedIncrement: 0.2,
+    maxPipeSpeed: isMobile ? 6 : 8,
     pipeGap: isMobile ? 180 : 160,
     pipeWidth: 60,
     pipeSpawnInterval: isMobile ? 2000 : 1800,
@@ -51,6 +56,9 @@ let frameCount = 0;
 let lastPipeSpawn = 0;
 let flashOpacity = 0;
 let isLegitimateWin = false;
+
+// Settings
+let flapSensitivity = parseFloat(localStorage.getItem('flapSensitivity')) || 1.0; // 0.7 (Easy) to 1.3 (Hard)
 
 // Secret cheat code
 const keysPressed = new Set();
@@ -76,7 +84,7 @@ const bird = {
     },
     
     flap() {
-        this.velocity = config.flapVelocity;
+        this.velocity = config.baseFlapVelocity * flapSensitivity;
         this.scale = 0.85;
     },
     
@@ -526,4 +534,32 @@ function gameLoop() {
 // Initialize
 bird.init();
 bestScoreEl.textContent = bestScore;
+
+// Settings
+sensitivitySlider.value = flapSensitivity;
+updateSensitivityDisplay();
+
+settingsBtn.addEventListener('click', () => {
+    settingsScreen.classList.remove('hidden');
+});
+
+closeSettingsBtn.addEventListener('click', () => {
+    settingsScreen.classList.add('hidden');
+});
+
+sensitivitySlider.addEventListener('input', (e) => {
+    flapSensitivity = parseFloat(e.target.value);
+    localStorage.setItem('flapSensitivity', flapSensitivity);
+    updateSensitivityDisplay();
+});
+
+function updateSensitivityDisplay() {
+    let label = 'Normal';
+    if (flapSensitivity <= 0.8) label = 'Easy';
+    else if (flapSensitivity <= 0.95) label = 'Medium';
+    else if (flapSensitivity >= 1.15) label = 'Hard';
+    
+    sensitivityValue.textContent = label;
+}
+
 gameLoop();

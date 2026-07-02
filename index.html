@@ -32,6 +32,24 @@
                 <p class="restart">Press Space or Tap to Play Again</p>
             </div>
         </div>
+        <div id="settingsScreen" class="screen hidden">
+            <div class="settings-content">
+                <h2>Settings</h2>
+                <div class="setting-item">
+                    <label>Jump Sensitivity</label>
+                    <div class="sensitivity-control">
+                        <span class="sensitivity-label">Easy</span>
+                        <input type="range" id="sensitivitySlider" min="0.7" max="1.3" step="0.05" value="1.0">
+                        <span class="sensitivity-label">Hard</span>
+                    </div>
+                    <div class="sensitivity-display">
+                        <span id="sensitivityValue">Normal</span>
+                    </div>
+                </div>
+                <button id="closeSettings" class="btn-primary">Close</button>
+            </div>
+        </div>
+        <button id="settingsBtn" class="settings-btn">&#9881;</button>
     </div>
     <script src="game.js"></script>
 </body>
