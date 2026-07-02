@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="startScreen" class="screen">
+            <p>Press Space or Tap to Start</p>
+        </div>
+        <div id="gameOverScreen" class="screen hidden">
+            <h2>Game Over</h2>
+            <p>Score: <span id="finalScore">0</span></p>
+            <p>Best: <span id="bestScore">0</span></p>
+            <p class="restart">Press Space or Tap to Restart</p>
+        </div>
+        <div id="winScreen" class="screen hidden">
+            <div class="win-content">
+                <h1 class="congrats" id="winTitle">CONGRATULATIONS!</h1>
+                <div class="trophy" id="winTrophy">&#9733;</div>
+                <p class="win-message" id="winMessage">You discovered the secret!</p>
+                <p class="win-score">Score: <span id="winScore">999</span></p>
+                <div class="stars">
+                    <span class="star">&#10022;</span>
+                    <span class="star">&#10022;</span>
+                    <span class="star">&#10022;</span>
+                </div>
+                <p class="restart">Press Space or Tap to Play Again</p>
+            </div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
