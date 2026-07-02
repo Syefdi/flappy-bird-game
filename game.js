@@ -464,6 +464,11 @@ function handleInput() {
 
 // Input listeners
 document.addEventListener('keydown', (e) => {
+    // Don't handle if settings is open
+    if (!settingsScreen.classList.contains('hidden')) {
+        return;
+    }
+    
     // Track keys for cheat code
     keysPressed.add(e.code);
     checkCheatCode();
@@ -484,6 +489,11 @@ let lastTouchTime = 0;
 
 canvas.addEventListener('click', handleInput);
 canvas.addEventListener('touchstart', (e) => {
+    // Don't handle if settings is open
+    if (!settingsScreen.classList.contains('hidden')) {
+        return;
+    }
+    
     e.preventDefault();
     
     const now = Date.now();
@@ -539,18 +549,34 @@ bestScoreEl.textContent = bestScore;
 sensitivitySlider.value = flapSensitivity;
 updateSensitivityDisplay();
 
-settingsBtn.addEventListener('click', () => {
+settingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
     settingsScreen.classList.remove('hidden');
 });
 
-closeSettingsBtn.addEventListener('click', () => {
+closeSettingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
     settingsScreen.classList.add('hidden');
 });
 
 sensitivitySlider.addEventListener('input', (e) => {
+    e.stopPropagation();
     flapSensitivity = parseFloat(e.target.value);
     localStorage.setItem('flapSensitivity', flapSensitivity);
     updateSensitivityDisplay();
+});
+
+sensitivitySlider.addEventListener('change', (e) => {
+    e.stopPropagation();
+});
+
+// Prevent settings screen from triggering game actions
+settingsScreen.addEventListener('click', (e) => {
+    e.stopPropagation();
+});
+
+settingsScreen.addEventListener('touchstart', (e) => {
+    e.stopPropagation();
 });
 
 function updateSensitivityDisplay() {
