@@ -65,8 +65,15 @@ let musicEnabled = localStorage.getItem('musicEnabled') !== 'false'; // Default 
 let sfxEnabled = localStorage.getItem('sfxEnabled') !== 'false'; // Default ON
 
 // Audio Context (Web Audio API for procedural sounds)
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-const audioCtx = new AudioContext();
+let AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+// Initialize AudioContext on first user interaction
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new AudioContext();
+    }
+}
 
 // Background Music (looping ambient track)
 let bgMusic = null;
@@ -74,6 +81,7 @@ let bgMusicGain = null;
 
 // Create simple background music using oscillators
 function createBackgroundMusic() {
+    if (!audioCtx) initAudio();
     if (bgMusic) return; // Already created
     
     // Create gain node for volume control
@@ -90,6 +98,7 @@ function createBackgroundMusic() {
 }
 
 function playBackgroundMusic() {
+    if (!audioCtx) initAudio();
     if (!musicEnabled || !bgMusic) return;
     if (bgMusic.isPlaying) return;
     
@@ -151,6 +160,7 @@ function stopBackgroundMusic() {
 
 // Sound Effects
 function playFlapSound() {
+    if (!audioCtx) initAudio();
     if (!sfxEnabled) return;
     
     const osc = audioCtx.createOscillator();
@@ -170,6 +180,7 @@ function playFlapSound() {
 }
 
 function playScoreSound() {
+    if (!audioCtx) initAudio();
     if (!sfxEnabled) return;
     
     const osc = audioCtx.createOscillator();
@@ -189,6 +200,7 @@ function playScoreSound() {
 }
 
 function playDieSound() {
+    if (!audioCtx) initAudio();
     if (!sfxEnabled) return;
     
     const osc = audioCtx.createOscillator();
@@ -209,6 +221,7 @@ function playDieSound() {
 }
 
 function playWinSound() {
+    if (!audioCtx) initAudio();
     if (!sfxEnabled) return;
     
     // Victory fanfare
@@ -499,7 +512,8 @@ function start() {
     gameOverScreen.classList.add('hidden');
     winScreen.classList.add('hidden');
     
-    // Start background music
+    // Initialize and start background music
+    initAudio();
     createBackgroundMusic();
     playBackgroundMusic();
 }
@@ -641,6 +655,11 @@ function checkCheatCode() {
 }
 
 function handleInput() {
+    // Resume AudioContext on first user interaction (for mobile)
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    
     if (gameState === GameState.IDLE) {
         start();
     } else if (gameState === GameState.PLAYING) {
@@ -675,7 +694,14 @@ document.addEventListener('keyup', (e) => {
 let touchCount = 0;
 let lastTouchTime = 0;
 
-canvas.addEventListener('click', handleInput);
+canvas.addEventListener('click', (e) => {
+    // Don't handle if settings is open
+    if (!settingsScreen.classList.contains('hidden')) {
+        return;
+    }
+    handleInput();
+});
+
 canvas.addEventListener('touchstart', (e) => {
     // Don't handle if settings is open
     if (!settingsScreen.classList.contains('hidden')) {
