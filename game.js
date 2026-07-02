@@ -31,7 +31,10 @@ const config = {
     gravity: isMobile ? 0.35 : 0.4,
     flapVelocity: isMobile ? -7 : -7.5,
     maxFallSpeed: isMobile ? 9 : 10,
-    pipeSpeed: isMobile ? 2.5 : 3,
+    basePipeSpeed: isMobile ? 2.5 : 3, // Base speed, will increase
+    pipeSpeed: isMobile ? 2.5 : 3, // Current speed
+    speedIncrement: 0.2, // Speed increase per 10 points
+    maxPipeSpeed: isMobile ? 6 : 8, // Maximum speed cap
     pipeGap: isMobile ? 180 : 160,
     pipeWidth: 60,
     pipeSpawnInterval: isMobile ? 2000 : 1800,
@@ -220,6 +223,9 @@ function spawnPipe() {
 }
 
 function updatePipes() {
+    // Don't update if won
+    if (gameState === GameState.DEAD && isLegitimateWin) return;
+    
     if (frameCount - lastPipeSpawn > config.pipeSpawnInterval / (1000 / 60)) {
         spawnPipe();
     }
@@ -235,9 +241,15 @@ function updatePipes() {
             pipes[i].scored = true;
             score++;
             
-            // Check for legitimate win at score 50
-            if (score >= 50) {
+            // Increase speed every 10 points
+            if (score % 10 === 0 && config.pipeSpeed < config.maxPipeSpeed) {
+                config.pipeSpeed += config.speedIncrement;
+            }
+            
+            // Check for legitimate win at score 999
+            if (score >= 999 && gameState === GameState.PLAYING) {
                 legitimateWin();
+                return; // Stop updating pipes
             }
         }
         
@@ -258,12 +270,24 @@ function drawGround() {
 
 function drawScore() {
     if (gameState === GameState.PLAYING) {
+        // Main score - responsive sizing
         ctx.fillStyle = 'white';
-        const fontSize = isMobile ? 56 : 48;
+        const fontSize = isMobile ? Math.min(canvas.height * 0.08, 56) : Math.min(canvas.height * 0.06, 64);
         ctx.font = `bold ${fontSize}px "Courier New", monospace`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        ctx.fillText(score, canvas.width / 2, isMobile ? 60 : 50);
+        const scoreY = isMobile ? canvas.height * 0.08 : canvas.height * 0.05;
+        ctx.fillText(score, canvas.width / 2, scoreY);
+        
+        // Speed indicator (small text) - responsive
+        const speedLevel = Math.floor(score / 10);
+        if (speedLevel > 0) {
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.8)';
+            const smallFontSize = isMobile ? Math.min(canvas.height * 0.025, 20) : Math.min(canvas.height * 0.02, 18);
+            ctx.font = `bold ${smallFontSize}px "Courier New", monospace`;
+            const speedY = scoreY + fontSize + 10;
+            ctx.fillText(`SPEED x${(1 + speedLevel * 0.067).toFixed(1)}`, canvas.width / 2, speedY);
+        }
     }
 }
 
@@ -283,6 +307,10 @@ function start() {
     lastPipeSpawn = 0;
     pipes.length = 0;
     isLegitimateWin = false;
+    
+    // Reset speed to base
+    config.pipeSpeed = config.basePipeSpeed;
+    
     bird.init();
     startScreen.classList.add('hidden');
     gameOverScreen.classList.add('hidden');
@@ -311,6 +339,7 @@ function instantWin() {
     // Set winning score
     score = 999;
     isLegitimateWin = false;
+    gameState = GameState.DEAD; // Stop game immediately
     flashOpacity = 0.8;
     
     // Victory effect - golden flash with particles
@@ -325,8 +354,6 @@ function instantWin() {
     }
     
     setTimeout(() => {
-        gameState = GameState.DEAD;
-        
         // Don't save cheat score to best score
         
         showWinScreen();
@@ -343,6 +370,7 @@ function legitimateWin() {
     if (gameState !== GameState.PLAYING) return;
     
     isLegitimateWin = true;
+    gameState = GameState.DEAD; // Stop game immediately
     flashOpacity = 0.8;
     
     // Epic victory effect - rainbow particles
@@ -360,8 +388,6 @@ function legitimateWin() {
     }
     
     setTimeout(() => {
-        gameState = GameState.DEAD;
-        
         if (score > bestScore) {
             bestScore = score;
             localStorage.setItem('flappyBestScore', bestScore);
@@ -412,7 +438,7 @@ function checkCheatCode() {
     if (keysPressed.has('KeyG') && keysPressed.has('KeyO') && keysPressed.has('KeyD')) {
         if (now - lastCheatCheck > 1000) {
             lastCheatCheck = now;
-            score = 50; // Set to winning score
+            score = 999; // Set to winning score
             legitimateWin();
         }
     }
@@ -468,7 +494,7 @@ canvas.addEventListener('touchstart', (e) => {
     if (fingers >= 5 && gameState === GameState.PLAYING) {
         if (now - lastTouchTime > 1000) {
             lastTouchTime = now;
-            score = 50;
+            score = 999;
             legitimateWin();
             return;
         }

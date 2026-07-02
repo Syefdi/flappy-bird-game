@@ -19,13 +19,42 @@ body {
 .game-container {
     position: relative;
     width: 100%;
-    max-width: 480px;
-    height: 100vh;
-    max-height: 640px;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Desktop: Full screen */
+@media (min-width: 768px) {
+    body {
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    }
+    
+    .game-container {
+        width: 100vw;
+        height: 100vh;
+    }
+    
+    #gameCanvas {
+        width: 100vw !important;
+        height: 100vh !important;
+    }
+}
+
+/* Mobile: Full screen with safe area */
+@media (max-width: 767px) {
+    .game-container {
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh; /* Dynamic viewport height for mobile */
+    }
+    
+    #gameCanvas {
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+    }
 }
 
 #gameCanvas {
@@ -98,6 +127,44 @@ body {
     opacity: 0.8;
 }
 
+/* Mobile responsive text sizes */
+@media (max-width: 767px) {
+    #startScreen p {
+        font-size: 28px;
+    }
+    
+    #gameOverScreen h2 {
+        font-size: 56px;
+    }
+    
+    #gameOverScreen p {
+        font-size: 28px;
+    }
+    
+    #gameOverScreen .restart {
+        font-size: 20px;
+    }
+}
+
+/* Desktop larger text */
+@media (min-width: 768px) {
+    #startScreen p {
+        font-size: 32px;
+    }
+    
+    #gameOverScreen h2 {
+        font-size: 64px;
+    }
+    
+    #gameOverScreen p {
+        font-size: 32px;
+    }
+    
+    #gameOverScreen .restart {
+        font-size: 24px;
+    }
+}
+
 #finalScore.secret-win {
     color: #fbbf24;
     text-shadow: 0 0 10px #fbbf24;
@@ -146,9 +213,28 @@ body {
     animation: bounce 1s ease-in-out infinite;
 }
 
+/* Desktop larger */
+@media (min-width: 768px) {
+    .congrats {
+        font-size: 64px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+    .congrats {
+        font-size: 40px;
+    }
+}
+
 #winScreen.legitimate .congrats {
     animation: bounce 0.8s ease-in-out infinite, rainbowText 2s linear infinite;
-    font-size: 52px;
+}
+
+@media (min-width: 768px) {
+    #winScreen.legitimate .congrats {
+        font-size: 72px;
+    }
 }
 
 @keyframes rainbowText {
@@ -177,9 +263,34 @@ body {
     animation: spin 2s linear infinite, glow 1.5s ease-in-out infinite;
 }
 
+/* Desktop larger */
+@media (min-width: 768px) {
+    .trophy {
+        font-size: 150px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+    .trophy {
+        font-size: 100px;
+    }
+}
+
 #winScreen.legitimate .trophy {
-    font-size: 140px;
     animation: float 2s ease-in-out infinite, megaGlow 1s ease-in-out infinite;
+}
+
+@media (min-width: 768px) {
+    #winScreen.legitimate .trophy {
+        font-size: 180px;
+    }
+}
+
+@media (max-width: 767px) {
+    #winScreen.legitimate .trophy {
+        font-size: 120px;
+    }
 }
 
 @keyframes float {
@@ -239,6 +350,36 @@ body {
     font-weight: bold;
 }
 
+/* Desktop larger */
+@media (min-width: 768px) {
+    .win-message {
+        font-size: 28px;
+    }
+    
+    .win-score {
+        font-size: 40px;
+    }
+    
+    #winScore {
+        font-size: 60px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+    .win-message {
+        font-size: 20px;
+    }
+    
+    .win-score {
+        font-size: 28px;
+    }
+    
+    #winScore {
+        font-size: 42px;
+    }
+}
+
 .stars {
     display: flex;
     justify-content: center;
@@ -252,9 +393,21 @@ body {
     animation: twinkle 1s ease-in-out infinite;
 }
 
+/* Desktop larger */
+@media (min-width: 768px) {
+    .star {
+        font-size: 50px;
+    }
+}
+
 #winScreen.legitimate .star {
-    font-size: 50px;
     animation: twinkle 0.8s ease-in-out infinite, starRainbow 2s linear infinite;
+}
+
+@media (min-width: 768px) {
+    #winScreen.legitimate .star {
+        font-size: 60px;
+    }
 }
 
 @keyframes starRainbow {
@@ -341,20 +494,55 @@ body {
 }
 
 @media (min-width: 768px) {
-    body {
-        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-    }
-    
-    #startScreen p,
-    #gameOverScreen .restart {
-        font-size: 20px;
+    #startScreen p {
+        font-size: 32px;
     }
     
     #gameOverScreen h2 {
-        font-size: 48px;
+        font-size: 64px;
     }
     
     #gameOverScreen p {
+        font-size: 32px;
+    }
+    
+    #gameOverScreen .restart {
         font-size: 24px;
+    }
+    
+    .congrats {
+        font-size: 64px;
+    }
+    
+    .trophy {
+        font-size: 150px;
+    }
+    
+    .win-message {
+        font-size: 28px;
+    }
+    
+    .win-score {
+        font-size: 40px;
+    }
+    
+    #winScore {
+        font-size: 60px;
+    }
+    
+    .star {
+        font-size: 50px;
+    }
+    
+    #winScreen.legitimate .congrats {
+        font-size: 72px;
+    }
+    
+    #winScreen.legitimate .trophy {
+        font-size: 180px;
+    }
+    
+    #winScreen.legitimate .star {
+        font-size: 60px;
     }
 }
