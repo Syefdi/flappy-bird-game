@@ -102,7 +102,9 @@ function playBackgroundMusic() {
     if (!musicEnabled || !bgMusic) return;
     if (bgMusic.isPlaying) return;
     
-    audioCtx.resume(); // Resume in case it's suspended
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
     
     // Simple melody notes (frequencies in Hz)
     const melody = [
@@ -161,89 +163,105 @@ function stopBackgroundMusic() {
 // Sound Effects
 function playFlapSound() {
     if (!audioCtx) initAudio();
-    if (!sfxEnabled) return;
+    if (!sfxEnabled || !audioCtx) return;
     
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    
-    osc.type = 'square';
-    osc.frequency.value = 800;
-    
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-    
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    
-    osc.start(audioCtx.currentTime);
-    osc.stop(audioCtx.currentTime + 0.1);
-}
-
-function playScoreSound() {
-    if (!audioCtx) initAudio();
-    if (!sfxEnabled) return;
-    
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    
-    osc.type = 'sine';
-    osc.frequency.value = 1000;
-    
-    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-    
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    
-    osc.start(audioCtx.currentTime);
-    osc.stop(audioCtx.currentTime + 0.2);
-}
-
-function playDieSound() {
-    if (!audioCtx) initAudio();
-    if (!sfxEnabled) return;
-    
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.5);
-    
-    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-    
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    
-    osc.start(audioCtx.currentTime);
-    osc.stop(audioCtx.currentTime + 0.5);
-}
-
-function playWinSound() {
-    if (!audioCtx) initAudio();
-    if (!sfxEnabled) return;
-    
-    // Victory fanfare
-    const notes = [523.25, 659.25, 783.99, 1046.50]; // C-E-G-C (major chord)
-    
-    notes.forEach((freq, index) => {
+    try {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         
-        osc.type = 'sine';
-        osc.frequency.value = freq;
+        osc.type = 'square';
+        osc.frequency.value = 800;
         
-        const startTime = audioCtx.currentTime + index * 0.1;
-        gain.gain.setValueAtTime(0.15, startTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
         
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         
-        osc.start(startTime);
-        osc.stop(startTime + 0.5);
-    });
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.1);
+    } catch (e) {
+        // Silently fail if audio not ready
+    }
+}
+
+function playScoreSound() {
+    if (!audioCtx) initAudio();
+    if (!sfxEnabled || !audioCtx) return;
+    
+    try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.value = 1000;
+        
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.2);
+    } catch (e) {
+        // Silently fail if audio not ready
+    }
+}
+
+function playDieSound() {
+    if (!audioCtx) initAudio();
+    if (!sfxEnabled || !audioCtx) return;
+    
+    try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.5);
+        
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.5);
+    } catch (e) {
+        // Silently fail if audio not ready
+    }
+}
+
+function playWinSound() {
+    if (!audioCtx) initAudio();
+    if (!sfxEnabled || !audioCtx) return;
+    
+    try {
+        // Victory fanfare
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C-E-G-C (major chord)
+        
+        notes.forEach((freq, index) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            
+            const startTime = audioCtx.currentTime + index * 0.1;
+            gain.gain.setValueAtTime(0.15, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.start(startTime);
+            osc.stop(startTime + 0.5);
+        });
+    } catch (e) {
+        // Silently fail if audio not ready
+    }
 }
 
 // Secret cheat code
@@ -655,8 +673,11 @@ function checkCheatCode() {
 }
 
 function handleInput() {
-    // Resume AudioContext on first user interaction (for mobile)
-    if (audioCtx.state === 'suspended') {
+    // Initialize and resume AudioContext on first user interaction (for mobile)
+    if (!audioCtx) {
+        initAudio();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
     
