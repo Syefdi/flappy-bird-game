@@ -672,20 +672,28 @@ function checkCheatCode() {
     }
 }
 
+// Debug: Log when handleInput is called
 function handleInput() {
+    console.log('handleInput called, gameState:', gameState);
+    
     // Initialize and resume AudioContext on first user interaction (for mobile)
     if (!audioCtx) {
         initAudio();
+        console.log('AudioContext initialized');
     }
     if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
+        console.log('AudioContext resumed');
     }
     
     if (gameState === GameState.IDLE) {
+        console.log('Starting game...');
         start();
     } else if (gameState === GameState.PLAYING) {
+        console.log('Bird flap');
         bird.flap();
     } else if (gameState === GameState.DEAD) {
+        console.log('Restarting game...');
         start();
     }
 }
@@ -754,6 +762,38 @@ canvas.addEventListener('touchstart', (e) => {
     }
     
     handleInput();
+});
+
+// Additional fallback for mobile - tap on start screen directly
+startScreen.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (gameState === GameState.IDLE) {
+        handleInput();
+    }
+});
+
+startScreen.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (gameState === GameState.IDLE) {
+        handleInput();
+    }
+});
+
+// Fallback for game over screen
+gameOverScreen.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (gameState === GameState.DEAD) {
+        handleInput();
+    }
+});
+
+gameOverScreen.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (gameState === GameState.DEAD) {
+        handleInput();
+    }
 });
 
 // Game loop
